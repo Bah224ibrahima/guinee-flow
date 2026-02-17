@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Guinée Flow - Streaming National</title>
+    <style>
+        :root {
+            --or: #fcd116;
+            --rouge: #ce1126;
+            --noir: #121212;
+            --gris-clair: #282828;
+            --vert: #1db954;
+            --bleu: #1e90ff;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--noir);
+            color: white;
+            font-family: 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding-bottom: 120px;
+        }
+
+        /* Header amélioré */
+        header {
+            padding: 15px 20px;
+            background: var(--noir);
+            border-bottom: 1px solid var(--gris-clair);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            color: var(--or);
+            font-weight: bold;
+            font-size: 1.3rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn {
+            background: var(--or);
+            color: var(--noir);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: #f0c200;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--or);
+            border: 1px solid var(--or);
+        }
+
+        /* Modal connexion */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 300;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--gris-clair);
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            background: var(--noir);
+            color: white;
+        }
+
+        .form-group input::placeholder {
+            color: #aaa;
+        }
+
+        /* Upload contenu */
+        #upload-section {
+            background: var(--gris-clair);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .file-upload {
+            border: 2px dashed var(--or);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-upload:hover {
+            background: rgba(252, 209, 22, 0.1);
+        }
+
+        .file-upload.dragover {
+            border-color: var(--vert);
+            background: rgba(29, 185, 84, 0.1);
+        }
+
+        /* Container principal */
+        .container {
+            max-width: 900px;
+            padding: 20px;
+            margin: 0 auto;
+        }
+
+        h3 {
+            margin: 30px 0 15px 0;
+            color: var(--or);
+            font-size: 1.3rem;
+        }
+
+        /* Cartes avec interactions */
+        .media-card {
+            background: var(--gris-clair);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 25px;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .media-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(252, 209, 22, 0.2);
+        }
+
+        .thumbnail {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #444, #666);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .category-tag {
+            background: var(--rouge);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            position: absolute;
+            top: 12px;
+            left: 12px;
+        }
+
+        .play-icon {
+            font-size: 3.5rem;
+            color: white;
+            opacity: 0.9;
+        }
+
+        .card-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border-top: 1px solid #444;
+        }
+
+        .card-meta {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 0.85rem;
+            color: #bbb;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            background: transparent;
+            border: none;
+            color: #aaa;
+            padding: 6px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+
+        .action-btn:hover {
+            color: var(--or);
+            background: rgba(252, 209, 22, 0.2);
+        }
+
+        .action-btn.active {
+            color: var(--or);
+        }
+
+        /* Commentaires */
+        .comments-section {
+            max-height: 0;
+            overflow: hidden;
+            background: #1a1a1a;
+            transition: max-height 0.4s ease;
+        }
+
+        .comments-section.open {
+            max-height: 500px;
+            padding: 15px;
+        }
+
+        .comment {
+            display: flex;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #333;
+        }
+
+        .comment-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--or);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .comment-content {
+            flex: 1;
+        }
+
+        .comment-author {
+            font-weight: 600;
+            color: var(--or);
+            margin-bottom: 4px;
+        }
+
+        .comment-text {
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+
+        .comment-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .comment-input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 20px;
+            border: 1px solid #444;
+            background: var(--noir);
+            color: white;
+        }
+
+        /* Lecteur audio (inchangé mais amélioré) */
+        .audio-player-fixed {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: var(--vert);
+            padding: 12px 20px;
+            display: none;
+            z-index: 200;
+        }
+
+        @media (max-width: 768px) {
+            .card-actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .action-btns {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="logo">🇬🇳 GUINÉE FLOW</div>
+        <div class="header-actions">
+            <div class="search-icon" title="Rechercher">🔍</div>
+            <button class="btn" id="uploadBtn">📤 Publier</button>
+            <button class="btn btn-secondary" id="loginBtn">👤 Connexion</button>
+        </div>
+    </header>
+
+    <!-- Modal Upload -->
+    <div id="uploadModal" class="modal">
+        <div class="modal-content">
+            <h3 style="color: var(--or); margin-top: 0;">Publier du contenu</h3>
+            <div class="file-upload" onclick="document.getElementById('fileInput').click()">
+                📁 Glisser votre fichier audio/vidéo ici<br>
+                <small>MP3, MP4 supportés (max 50MB)</small>
+            </div>
+            <input type="file" id="fileInput" accept="audio/*,video/*" style="display: none;">
+            <div class="form-group">
+                <input type="text" id="postTitle" placeholder="Titre de votre publication">
+            </div>
+            <div class="form-group">
+                <input type="text" id="postTags" placeholder="Tags (ex: musique, culture)">
+            </div>
+            <button class="btn" style="width: 100%;" onclick="publierContenu()">📤 Publier</button>
+            <button class="btn btn-secondary" onclick="fermerModal('uploadModal')"
+                style="width: 100%; margin-top: 10px;">Annuler</button>
+        </div>
+    </div>
+
+    <!-- Modal Connexion -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <h3 style="color: var(--or);">Connexion</h3>
+            <div class="form-group">
+                <input type="text" id="username" placeholder="Nom d'utilisateur">
+            </div>
+            <div class="form-group">
+                <input type="password" id="password" placeholder="Mot de passe">
+            </div>
+            <button class="btn" style="width: 100%;" onclick="connexion()">Se connecter</button>
+            <button class="btn btn-secondary" onclick="inscription()" style="width: 100%; margin-top: 10px;">Nouveau
+                compte</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Section Upload rapide -->
+        <div id="upload-section" style="display: none;">
+            <h3>📤 Publier rapidement</h3>
+            <div class="file-upload" id="quickUpload">
+                Cliquez pour ajouter votre contenu
+                <input type="file" id="quickFile" accept="audio/*,video/*" style="display: none;">
+            </div>
+        </div>
+
+        <h3>🔥 Tendances</h3>
+        <div id="contenus"></div>
+    </div>
+
+    <!-- Player audio -->
+    <div id="player" class="audio-player-fixed" style="display: none;">
+        <button onclick="togglePlayPause()">▶️/⏸️</button>
+        <span id="now-playing">En cours...</span>
+        <button onclick="fermerPlayer()">✕</button>
+    </div>
+    <audio id="audio"></audio>
+
+    <script>
+        // Simulation base de données (localStorage)
+        let utilisateurs = JSON.parse(localStorage.getItem('utilisateurs')) || [];
+        let contenus = JSON.parse(localStorage.getItem('contenus')) || [];
+        let utilisateurConnecte = null;
+
+        // Interface utilisateur
+        document.getElementById('loginBtn').onclick = () => ouvrirModal('loginModal');
+        document.getElementById('uploadBtn').onclick = () => {
+            if (!utilisateurConnecte) {
+                alert('Connectez-vous pour publier !');
+                ouvrirModal('loginModal');
+                return;
+            }
+            ouvrirModal('uploadModal');
+        };
+
+        function ouvrirModal(id) {
+            document.getElementById(id).style.display = 'flex';
+        }
+
+        function fermerModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        // Authentification
+        function connexion() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const user = utilisateurs.find(u => u.username === username && u.password === password);
+
+            if (user) {
+                utilisateurConnecte = user;
+                document.getElementById('loginBtn').textContent = `👤 ${user.username}`;
+                document.getElementById('upload-section').style.display = 'block';
+                fermerModal('loginModal');
+                chargerContenus();
+                alert('Connecté !');
+            } else {
+                alert('Identifiants incorrects');
+            }
+        }
+
+        function inscription() {
+            const username = document.getElementById('username').value;
+            if (utilisateurs.find(u => u.username === username)) {
+                alert('Nom d\'utilisateur déjà pris');
+                return;
+            }
+            utilisateurs.push({ username, password: document.getElementById('password').value, avatar: '👤' });
+            localStorage.setItem('utilisateurs', JSON.stringify(utilisateurs));
+            alert('Compte créé ! Connectez-vous.');
+        }
+
+        // Publication contenu
+        function publierContenu() {
+            const file = document.getElementById('fileInput').files[0];
+            const title = document.getElementById('postTitle').value;
+            const tags = document.getElementById('postTags').value;
+
+            if (!file || !title) {
+                alert('Veuillez remplir tous les champs');
+                return;
+            }
+
+            // Simulation upload (URL fictive)
+            const contenu = {
+                id: Date.now(),
+                title,
+                auteur: utilisateurConnecte.username,
+                tags: tags.split(',').map(t => t.trim()),
+                vues: 0,
+                likes: 0,
+                commentaires: [],
+                fichier: URL.createObjectURL(file),
+                type: file.type.startsWith('audio/') ? 'audio' : 'video',
+                date: new Date().toLocaleString('fr-FR')
+            };
+
+            contenus.unshift(contenu);
+            localStorage.setItem('contenus', JSON.stringify(contenus));
+            chargerContenus();
+            fermerModal('uploadModal');
+            document.getElementById('postTitle').value = '';
+            document.getElementById('postTags').value = '';
+            alert('Contenu publié ! 🎉');
+        }
+
+        // Charger contenus
+        function chargerContenus() {
+            const container = document.getElementById('contenus');
+            container.innerHTML = contenus.map(contenu => `
+                <div class="media-card" data-id="${contenu.id}">
+                    <div class="thumbnail">
+                        <span class="category-tag">${contenu.tags[0]?.toUpperCase() || 'AUDIO'}</span>
+                        <div class="play-icon">▶️</div>
+                    </div>
+                    <div class="info">
+                        <h4>${contenu.title}</h4>
+                        <p>${contenu.auteur} • ${contenu.vues} vues • ${contenu.date}</p>
+                    </div>
+                    <div class="card-actions">
+                        <div class="card-meta">
+                            <span>❤️ ${contenu.likes}</span>
+                            <span>💬 ${contenu.commentaires.length}</span>
+                        </div>
+                        <div class="action-btns">
+                            <button class="action-btn" onclick="toggleLike(${contenu.id})" title="Liker">❤️</button>
+                            <button class="action-btn" onclick="share(${contenu.id})" title="Partager">📤</button>
+                            <button class="action-btn" onclick="toggleCommentaires(${contenu.id})" title="Commentaires">💬</button>
+                            <button class="action-btn" onclick="jouerContenu(${contenu.id})" title="Jouer">▶️</button>
+                        </div>
+                    </div>
+                    <div class="comments-section" id="comments-${contenu.id}">
+                        ${contenu.commentaires.map(c => `
+                            <div class="comment">
+                                <div class="comment-avatar">${c.avatar}</div>
+                                <div class="comment-content">
+                                    <div class="comment-author">${c.auteur}</div>
+                                    <div class="comment-text">${c.texte}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                        ${utilisateurConnecte ? `
+                            <div class="comment-form">
+                                <input class="comment-input" placeholder="Ajouter un commentaire..." onkeypress="if(event.key==='Enter') ajouterCommentaire(${contenu.id}, this.value, this)">
+                                <button class="action-btn" onclick="ajouterCommentaire(${contenu.id}, this.previousElementSibling.value, this.previousElementSibling)">📤</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Interactions
+        function toggleLike(id) {
+            const contenu = contenus.find(c => c.id === id);
+            if (utilisateurConnecte) {
+                contenu.likes = contenu.likes === 0 ? 1 : 0;
+                localStorage.setItem('contenus', JSON.stringify(contenus));
+                chargerContenus();
+            } else {
+                alert('Connectez-vous pour liker !');
+            }
+        }
+
+        function share(id) {
+            const contenu = contenus.find(c => c.id === id);
+            if (navigator.share) {
+                navigator.share({
+                    title: contenu.title,
+                    text: `Écoute "${contenu.title}" sur Guinée Flow !`,
+                    url: window.location.href
+                });
+            } else {
+                navigator.clipboard.writeText(`${contenu.title} - Guinée Flow`);
+                alert('Lien copié !');
+            }
+        }
+
+        function toggleCommentaires(id) {
+            const section = document.getElementById(`comments-${id}`);
+            section.classList.toggle('open');
+        }
+
+        function ajouterCommentaire(id, texte, input) {
+            if (!texte.trim() || !utilisateurConnecte) return;
+
+            const contenu = contenus.find(c => c.id === id);
+            contenu.commentaires.push({
+                avatar: '👤',
+                auteur: utilisateurConnecte.username,
+                texte: texte.trim()
+            });
+
+            localStorage.setItem('contenus', JSON.stringify(contenus));
+            chargerContenus();
+            input.value = '';
+        }
+
+        // Player audio
+        function jouerContenu(id) {
+            const contenu = contenus.find(c => c.id === id);
+            const audio = document.getElementById('audio');
+            audio.src = contenu.fichier;
+            document.getElementById('now-playing').textContent = contenu.title;
+            document.getElementById('player').style.display = 'flex';
+            audio.play();
+            contenu.vues++;
+            localStorage.setItem('contenus', JSON.stringify(contenus));
+        }
+
+        function togglePlayPause() {
+            const audio = document.getElementById('audio');
+            if (audio.paused) audio.play(); else audio.pause();
+        }
+
+        function fermerPlayer() {
+            document.getElementById('player').style.display = 'none';
+            document.getElementById('audio').pause();
+        }
+
+        // Drag & Drop upload
+        const uploadAreas = document.querySelectorAll('.file-upload');
+        uploadAreas.forEach(area => {
+            area.ondragover = e => {
+                e.preventDefault();
+                area.classList.add('dragover');
+            };
+            area.ondragleave = () => area.classList.remove('dragover');
+            area.ondrop = e => {
+                e.preventDefault();
+                area.classList.remove('dragover');
+                document.getElementById('fileInput').files = e.dataTransfer.files;
+            };
+        });
+
+        // Initialisation
+        chargerContenus();
+    </script>
+</body>
+
+</html>
